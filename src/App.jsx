@@ -1,63 +1,89 @@
 import { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import Layout from './components/Layout';
-import Dashboard from './pages/Dashboard';
-import Formations from './pages/Formations';
-import Participants from './pages/Participants';
-import Formateurs from './pages/Formateurs';
-import Domaines from './pages/Domaines';
-import Structures from './pages/Structures';
-import Profils from './pages/Profils';
-import Employeurs from './pages/Employeurs';
-import Utilisateurs from './pages/Utilisateurs';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import FormationsPubliques from './pages/FormationsPubliques';
+import AdminLayout from './layouts/AdminLayout';
+import ResponsableLayout from './layouts/ResponsableLayout';
+import UtilisateurLayout from './layouts/UtilisateurLayout';
 
 function App() {
   const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true); // ← ajout
 
   useEffect(() => {
     const savedUser = localStorage.getItem('user');
     const token = localStorage.getItem('token');
-    if (savedUser && token) setUser(JSON.parse(savedUser));
+    if (savedUser && token) {
+      setUser(JSON.parse(savedUser));
+    }
+    setLoading(false); // ← fin du chargement
   }, []);
 
-  const handleLogin = (userData) => setUser(userData);
+  const handleLogin = (userData) => {
+    setUser(userData);
+    localStorage.setItem('user', JSON.stringify(userData));
+  };
 
   const handleLogout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     setUser(null);
+    window.location.href = '/';
   };
 
-  if (!user) {
+  // ← pendant le chargement on n'affiche rien
+  if (loading) {
     return (
-      <Router>
-        <Routes>
-          <Route path="/" element={<Login onLogin={handleLogin} />} />
-          <Route path="/register" element={<Register onLogin={handleLogin} />} />
-          <Route path="*" element={<Navigate to="/" />} />
-        </Routes>
-      </Router>
+      <div style={{
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        background: '#f4f5f7'
+      }}>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{
+            width: 40, height: 40, borderRadius: '50%',
+            background: '#6378ff',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            margin: '0 auto 12px',
+            fontSize: 18, color: '#fff', fontWeight: 500
+          }}>G</div>
+          <p style={{ fontSize: 13, color: '#9ca3af' }}>Chargement...</p>
+        </div>
+      </div>
     );
   }
 
   return (
     <Router>
-      <Layout user={user} onLogout={handleLogout}>
-        <Routes>
-          <Route path="/" element={<Dashboard user={user} />} />
-          <Route path="/formations" element={<Formations />} />
-          <Route path="/participants" element={<Participants />} />
-          <Route path="/formateurs" element={<Formateurs />} />
-          <Route path="/domaines" element={<Domaines />} />
-          <Route path="/structures" element={<Structures />} />
-          <Route path="/profils" element={<Profils />} />
-          <Route path="/employeurs" element={<Employeurs />} />
-          <Route path="/utilisateurs" element={<Utilisateurs />} />
-          <Route path="*" element={<Navigate to="/" />} />
-        </Routes>
-      </Layout>
+      <Routes>
+
+        {/* Pages publiques */}
+        <Route path="/" element={<FormationsPubliques />} />
+        <Route path="/login" element={<Login onLogin={handleLogin} />} />
+        <Route path="/register" element={<Register onLogin={handleLogin} />} />
+
+        {/* Espace Admin — accès direct */}
+        <Route path="/admin/*" element={
+          <AdminLayout user={user} onLogout={handleLogout} />
+        } />
+
+        {/* Espace Responsable — accès direct */}
+        <Route path="/responsable/*" element={
+          <ResponsableLayout user={user} onLogout={handleLogout} />
+        } />
+
+        {/* Espace Utilisateur — doit être connecté */}
+        <Route path="/utilisateur/*" element={
+          user?.role === 'SIMPLE_UTILISATEUR'
+            ? <UtilisateurLayout user={user} onLogout={handleLogout} />
+            : <Navigate to="/login" replace />
+        } />
+
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
     </Router>
   );
 }

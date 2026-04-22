@@ -1,32 +1,35 @@
-    import axios from 'axios';
+import axios from 'axios';
 
-    const api = axios.create({
-        baseURL: '/api',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-    });
+// Instance publique — sans token (pour les pages publiques)
+export const apiPublic = axios.create({
+    baseURL: '/api',
+    headers: { 'Content-Type': 'application/json' },
+});
 
-    // Intercepteur : ajoute le token JWT à chaque requête
-    api.interceptors.request.use((config) => {
-        const token = localStorage.getItem('token');
-        if (token) {
-            config.headers.Authorization = `Bearer ${token}`;
+// Instance privée — avec token (pour les pages protégées)
+const api = axios.create({
+    baseURL: '/api',
+    headers: { 'Content-Type': 'application/json' },
+});
+
+api.interceptors.request.use((config) => {
+    const token = localStorage.getItem('token');
+    if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+});
+
+api.interceptors.response.use(
+    (response) => response,
+    (error) => {
+        if (error.response?.status === 401) {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            window.location.href = '/login';
         }
-        return config;
-    });
+        return Promise.reject(error);
+    }
+);
 
-    // Intercepteur : si 401 → rediriger vers login
-    api.interceptors.response.use(
-        (response) => response,
-        (error) => {
-            if (error.response?.status === 401) {
-                localStorage.removeItem('token');
-                localStorage.removeItem('user');
-                window.location.href = '/';
-            }
-            return Promise.reject(error);
-        }
-    );
-
-    export default api;
+export default api;
