@@ -135,10 +135,10 @@ function Dashboard({ basePath = '/admin' }) {
       {/* KPI Cards principales */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14, marginBottom: 20 }}>
         {[
-          { label: 'Formations totales', value: stats.formations, icon: '📋', color: '#6378ff', sub: `${stats.formations_annee_courante} cette année`, path: `${basePath}/formations` },
-          { label: 'Participants', value: stats.participants, icon: '👥', color: '#1D9E75', sub: 'inscrits au total', path: `${basePath}/participants` },
-          { label: 'Formateurs', value: stats.formateurs, icon: '🧑‍🏫', color: '#f59e0b', sub: `${stats.formateurs_internes} int. / ${stats.formateurs_externes} ext.`, path: `${basePath}/formateurs` },
-          { label: 'Budget total', value: stats.budget_total.toLocaleString() + ' DT', icon: '💰', color: '#e24b4a', sub: 'toutes formations confondues', path: null },
+          { label: 'Formations totales', value: stats.formations,  color: '#6378ff', sub: `${stats.formations_annee_courante} cette année`, path: `${basePath}/formations` },
+          { label: 'Participants', value: stats.participants,  color: '#1D9E75', sub: 'inscrits au total', path: `${basePath}/participants` },
+          { label: 'Formateurs', value: stats.formateurs,color: '#f59e0b', sub: `${stats.formateurs_internes} int. / ${stats.formateurs_externes} ext.`, path: `${basePath}/formateurs` },
+          { label: 'Budget total', value: stats.budget_total.toLocaleString() + ' DT',  color: '#e24b4a', sub: 'toutes formations confondues', path: null },
         ].map(card => (
           <div key={card.label}
             onClick={() => card.path && navigate(card.path)}
@@ -177,10 +177,10 @@ function Dashboard({ basePath = '/admin' }) {
       {/* KPI secondaires */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14, marginBottom: 24 }}>
         {[
-          { label: 'Formations ' + anneeActuelle, value: stats.formations_annee_courante, icon: '📅', color: '#8b5cf6' },
-          { label: 'Formateurs internes', value: stats.formateurs_internes, icon: '🏢', color: '#06b6d4' },
-          { label: 'Formateurs externes', value: stats.formateurs_externes, icon: '🌐', color: '#f97316' },
-          { label: 'Domaines actifs', value: stats.domaines, icon: '📚', color: '#10b981' },
+          { label: 'Formations ' + anneeActuelle, value: stats.formations_annee_courante,  color: '#8b5cf6' },
+          { label: 'Formateurs internes', value: stats.formateurs_internes,  color: '#06b6d4' },
+          { label: 'Formateurs externes', value: stats.formateurs_externes,  color: '#f97316' },
+          { label: 'Domaines actifs', value: stats.domaines, color: '#10b981' },
         ].map(card => (
           <div key={card.label} style={{
             background: '#fff', border: '0.5px solid #e5e7eb', borderRadius: 14,
@@ -212,7 +212,7 @@ function Dashboard({ basePath = '/admin' }) {
         }}>
           <div style={{ marginBottom: 20 }}>
             <div style={{ fontSize: 14, fontWeight: 600, color: '#111827' }}>
-              📊 Formations par domaine
+               Formations par domaine
             </div>
             <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 2 }}>
               Répartition par domaine de formation
@@ -255,7 +255,7 @@ function Dashboard({ basePath = '/admin' }) {
         }}>
           <div style={{ marginBottom: 20 }}>
             <div style={{ fontSize: 14, fontWeight: 600, color: '#111827' }}>
-              📈 Évolution par année
+               Évolution par année
             </div>
             <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 2 }}>
               Nombre de formations organisées par année
@@ -297,7 +297,7 @@ function Dashboard({ basePath = '/admin' }) {
         }}>
           <div style={{ marginBottom: 16 }}>
             <div style={{ fontSize: 14, fontWeight: 600, color: '#111827' }}>
-              🏆 Top formations
+               Top formations
             </div>
             <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 2 }}>
               Par nombre de participants inscrits
@@ -353,7 +353,7 @@ function Dashboard({ basePath = '/admin' }) {
           }}>
             <div>
               <div style={{ fontSize: 14, fontWeight: 600, color: '#111827' }}>
-                📋 Dernières formations
+                 Dernières formations
               </div>
               <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 2 }}>
                 Les 5 dernières formations enregistrées

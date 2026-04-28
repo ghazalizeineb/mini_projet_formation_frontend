@@ -63,7 +63,7 @@ function FormationsPubliques() {
     };
 
     return (
-        <div style={{ minHeight: '100vh', background: '#12082a', fontFamily: "'Syne', 'Inter', sans-serif", color: '#ddd6fe' }}>
+        <div style={{ minHeight: '100vh', background: 'rgba(124,58,237,0.3)', fontFamily: "'Syne', 'Inter', sans-serif", color: '#ddd6fe' }}>
 
             <style>{`
                 @import url('https://fonts.googleapis.com/css2?family=Syne:wght@500;600;700;800&family=Inter:wght@300;400;500&display=swap');
@@ -72,8 +72,8 @@ function FormationsPubliques() {
                 select option { color: #1e293b; background: #fff; }
 
                 .nav-btn-ghost {
-                    background: transparent; color: #a78bfa;
-                    border: 1px solid rgba(139,92,246,0.35); border-radius: 8px;
+                    background: transparent; color: white;
+                    border: 1px solid #7c3aed ; border-radius: 8px;
                     padding: 7px 18px; font-size: 13px; font-weight: 500;
                     cursor: pointer; font-family: 'Inter', sans-serif; transition: background 0.15s;
                 }
@@ -168,7 +168,7 @@ function FormationsPubliques() {
                                     background: 'rgba(124,58,237,0.5)', border: '1px solid rgba(139,92,246,0.4)',
                                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                                     fontSize: 11, fontWeight: 700, color: '#c4b5fd',
-                                }}>
+                                }}> 
                                     {user.login.charAt(0).toUpperCase()}
                                 </div>
                                 <span style={{ fontSize: 13, color: '#c4b5fd', fontFamily: "'Inter', sans-serif" }}>{user.login}</span>
@@ -228,7 +228,7 @@ function FormationsPubliques() {
                     </div>
 
                     <h1 style={{
-    fontSize: 38,
+    fontSize: 60,
     fontWeight: 700,
     color: '#f5f3ff',
     marginBottom: 12,
@@ -239,7 +239,7 @@ function FormationsPubliques() {
     Nos Formations<br />Professionnelles
 </h1>
                     <p style={{
-                        fontSize: 16, color: '#7c6ea0', margin: '0 auto 40px',
+                        fontSize: 16, color: '#f5f3ff', margin: '0 auto 40px',
                         maxWidth: 480, fontWeight: 300, lineHeight: 1.7,
                         fontFamily: "'Inter', sans-serif",
                     }}>
@@ -262,7 +262,7 @@ function FormationsPubliques() {
                     {stat.value}
                 </div>
                 <div style={{
-                    fontSize: 11, color: '#6d5a99', fontWeight: 500,
+                    fontSize: 11, color: 'white', fontWeight: 500,
                     textTransform: 'uppercase', letterSpacing: '1.5px',
                     marginTop: 2, fontFamily: "'Inter', sans-serif",
                 }}>
@@ -279,7 +279,7 @@ function FormationsPubliques() {
             </div>
 
             {/* ── Contenu ── */}
-            <div style={{ background: 'rgba(255,255,255,0.015)', borderTop: '1px solid rgba(167,139,250,0.08)', padding: '32px 40px 48px' }}>
+            <div style={{ background: 'rgba(255,255,255,0.015)', borderTop: '1px solid rgba(167,139,250,0.08)', padding: '32px 40px 48px', }}>
                 <div style={{ maxWidth: 1160, margin: '0 auto' }}>
 
                     {/* Filtres */}
@@ -305,7 +305,7 @@ function FormationsPubliques() {
                             borderRadius: 100, padding: '10px 18px', display: 'flex', alignItems: 'center',
                         }}>
                             <select value={filterDomaine} onChange={e => setFilterDomaine(e.target.value)} className="domain-select">
-                                <option value="">Tous les domaines</option>
+                                <option value="" >Tous les domaines</option>
                                 {domaines.map(d => <option key={d.id} value={d.id}>{d.libelle}</option>)}
                             </select>
                         </div>
@@ -313,10 +313,10 @@ function FormationsPubliques() {
 
                     {/* Compteur */}
                     <div style={{ marginBottom: 20 }}>
-                        <span style={{ fontSize: 12, color: '#6d5a99', fontFamily: "'Inter', sans-serif" }}>
+                        {/* <span style={{ fontSize: 12, color: '#6d5a99', fontFamily: "'Inter', sans-serif" }}>
                             <strong style={{ color: '#a78bfa', fontWeight: 500 }}>{filteredFormations.length}</strong>
                             {' '}formation{filteredFormations.length > 1 ? 's' : ''} trouvée{filteredFormations.length > 1 ? 's' : ''}
-                        </span>
+                        </span> */}
                     </div>
 
                     {/* Grille */}

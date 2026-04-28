@@ -14,63 +14,106 @@ function Profils() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      if (editingId) { await api.put(`/profils/${editingId}`, form); showMsg('Profil modifié', 'success'); setEditingId(null); }
-      else { await api.post('/profils', form); showMsg('Profil ajouté', 'success'); }
+      if (editingId) { await api.put(`/profils/${editingId}`, form); showMsg('✅ Profil modifié avec succès !', 'success'); setEditingId(null); }
+      else { await api.post('/profils', form); showMsg('✅ Profil ajouté avec succès !', 'success'); }
       setForm({ libelle: '' }); fetchAll();
-    } catch { showMsg('Erreur lors de l\'enregistrement', 'danger'); }
+    } catch { showMsg('❌ Erreur lors de l\'enregistrement !', 'danger'); }
   };
 
   const handleDelete = async (id) => {
     if (!window.confirm('Supprimer ce profil ?')) return;
-    try { await api.delete(`/profils/${id}`); showMsg('Profil supprimé', 'success'); fetchAll(); }
-    catch { showMsg('Erreur lors de la suppression', 'danger'); }
+    try { await api.delete(`/profils/${id}`); showMsg('✅ Profil supprimé avec succès !', 'success'); fetchAll(); }
+    catch { showMsg('❌ Erreur lors de la suppression !', 'danger'); }
   };
+
+  const handleCancel = () => { setEditingId(null); setForm({ libelle: '' }); };
 
   return (
     <div>
-      <h1 style={{ fontSize: 20, fontWeight: 500, marginBottom: 20 }}>Profils</h1>
-      {message.text && <div className={`alert-${message.type}`}>{message.text}</div>}
+      <h2 className="mb-4">Gestion des Profils</h2>
 
-      <div className="page-card" style={{ marginBottom: 20 }}>
-        <div className="page-card-header">
-          <span className="page-card-title">{editingId ? 'Modifier un profil' : 'Ajouter un profil'}</span>
+      {message.text && (
+        <div className={`alert ${message.type === 'danger' ? 'alert-danger' : 'alert-success'}`}>
+          {message.text}
         </div>
-        <div className="page-card-body">
-          <form onSubmit={handleSubmit} style={{ display: 'flex', gap: 12 }}>
-            <input className="form-input" placeholder="Libellé du profil" value={form.libelle}
-              onChange={e => setForm({ libelle: e.target.value })} required style={{ flex: 1 }} />
-            <button type="submit" className={`btn ${editingId ? 'btn-warning' : 'btn-primary'}`}>
-              {editingId ? 'Modifier' : 'Ajouter'}
-            </button>
+      )}
+
+      {/* Formulaire */}
+      <div className="card mb-4">
+        <div className="card-header" style={{ background: 'white', color: 'black', borderBottom: '1px solid rgba(139,92,246,0.5)' }}>
+          <h5>{editingId ? 'Modifier un profil' : 'Ajouter un profil'}</h5>
+        </div>
+        <div className="card-body">
+          <form onSubmit={handleSubmit} className="row g-3">
+            <div className="col-md-8">
+              <input
+                type="text"
+                className="form-control"
+                placeholder="Libellé du profil"
+                value={form.libelle}
+                onChange={(e) => setForm({ libelle: e.target.value })}
+                required
+              />
+            </div>
+            <div className="col-md-2">
+              <button type="submit" className="btn btn-primary w-100">
+                {editingId ? 'Modifier' : 'Ajouter'}
+              </button>
+            </div>
             {editingId && (
-              <button type="button" className="btn btn-secondary" onClick={() => { setEditingId(null); setForm({ libelle: '' }); }}>Annuler</button>
+              <div className="col-md-2">
+                <button type="button" className="btn btn-primary w-100" onClick={handleCancel}>
+                  Annuler
+                </button>
+              </div>
             )}
           </form>
         </div>
       </div>
 
-      <div className="page-card">
-        <div className="page-card-header">
-          <span className="page-card-title">Liste des profils ({items.length})</span>
+      {/* Tableau */}
+      <div className="card">
+        <div className="card-header" style={{ background: 'white', color: 'black', borderBottom: '1px solid rgba(139,92,246,0.5)' }}>
+          <h5>Liste des Profils ({items.length})</h5>
         </div>
-        <table className="data-table">
-          <thead><tr><th>ID</th><th>Libellé</th><th>Actions</th></tr></thead>
-          <tbody>
-            {items.map(item => (
-              <tr key={item.id}>
-                <td style={{ color: '#9ca3af', width: 60 }}>#{item.id}</td>
-                <td style={{ fontWeight: 500 }}>{item.libelle}</td>
-                <td style={{ width: 120 }}>
-                  <div style={{ display: 'flex', gap: 6 }}>
-                    <button className="btn btn-warning btn-sm" onClick={() => { setForm({ libelle: item.libelle }); setEditingId(item.id); }}>Modifier</button>
-                    <button className="btn btn-danger btn-sm" onClick={() => handleDelete(item.id)}>Supprimer</button>
-                  </div>
-                </td>
+        <div className="card-body">
+          <table className="table table-striped table-hover">
+            <thead className="table-secondary">
+              <tr>
+                <th>ID</th>
+                <th>Libellé</th>
+                <th>Actions</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-        {items.length === 0 && <div className="empty-state">Aucun profil trouvé.</div>}
+            </thead>
+            <tbody>
+              {items.map((item) => (
+                <tr key={item.id}>
+                  <td>{item.id}</td>
+                  <td>{item.libelle}</td>
+                  <td>
+                    <button
+                      className="btn btn-sm btn-warning me-2"
+                      style={{ background: 'rgba(124,58,237,0.25)', color: '#000', border: '1px solid rgba(139,92,246,0.4)' }}
+                      onClick={() => { setForm({ libelle: item.libelle }); setEditingId(item.id); }}
+                    >
+                      Modifier
+                    </button>
+                    <button
+                      className="btn btn-sm btn-danger"
+                      style={{ background: 'rgba(124,58,237,0.25)', color: '#000', border: '1px solid rgba(139,92,246,0.4)' }}
+                      onClick={() => handleDelete(item.id)}
+                    >
+                      Supprimer
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          {items.length === 0 && (
+            <p className="text-center text-muted">Aucun profil trouvé.</p>
+          )}
+        </div>
       </div>
     </div>
   );

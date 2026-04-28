@@ -74,16 +74,17 @@ function Roles() {
             <input
               value={form.nom}
               onChange={e => setForm({ nom: e.target.value })}
-              placeholder="Nom du rôle (ex: ADMIN)"
+              placeholder="Nom du rôle "
               required
               style={{ flex: 1, height: 38, border: '0.5px solid #e5e7eb', borderRadius: 8, padding: '0 12px', fontSize: 13, background: '#f9fafb', color: '#111827', outline: 'none' }}
             />
-            <button type="submit" style={{ height: 38, padding: '0 16px', background: editingId ? '#f59e0b' : '#6378ff', color: '#fff', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 500, cursor: 'pointer' }}>
+            <button type="submit" style={{ height: 38, padding: '0 16px', background: editingId ? '#700bf5' : '#6378ff', color: '#fff', border: 'none', borderRadius: 8, fontSize: 13, fontWeight: 500, cursor: 'pointer' }}>
               {editingId ? 'Modifier' : 'Ajouter'}
             </button>
-            {editingId && (
-              <button type="button" onClick={() => { setEditingId(null); setForm({ nom: '' }); }}
-                style={{ height: 38, padding: '0 16px', background: '#f3f4f6', color: '#374151', border: '0.5px solid #e5e7eb', borderRadius: 8, fontSize: 13, cursor: 'pointer' }}>
+            {editingId && (                
+
+              <button type="button"  onClick={() => { setEditingId(null); setForm({ nom: '' }); }}
+                  style={{ height: 38, padding: '0 16px', background: '#700bf5', color: 'white', border: '0.5px solid #e5e7eb', borderRadius: 8, fontSize: 13, cursor: 'pointer' }}>
                 Annuler
               </button>
             )}
@@ -118,11 +119,11 @@ function Roles() {
                   <td style={{ padding: '11px 16px', width: 150 }}>
                     <div style={{ display: 'flex', gap: 6 }}>
                       <button onClick={() => { setForm({ nom: item.nom }); setEditingId(item.id); }}
-                        style={{ height: 28, padding: '0 10px', background: '#f59e0b', color: '#fff', border: 'none', borderRadius: 6, fontSize: 12, cursor: 'pointer' }}>
+                        style={{ height: 28, padding: '0 10px', background: 'rgba(124,58,237,0.25', color: 'black ', border: 'none', borderRadius: 6, fontSize: 12, cursor: 'pointer' }}>
                         Modifier
                       </button>
                       <button onClick={() => handleDelete(item.id)}
-                        style={{ height: 28, padding: '0 10px', background: '#e24b4a', color: '#fff', border: 'none', borderRadius: 6, fontSize: 12, cursor: 'pointer' }}>
+                        style={{ height: 28, padding: '0 10px', background: 'rgba(124,58,237,0.25', color: 'black', border: 'none', borderRadius: 6, fontSize: 12, cursor: 'pointer' }}>
                         Supprimer
                       </button>
                     </div>

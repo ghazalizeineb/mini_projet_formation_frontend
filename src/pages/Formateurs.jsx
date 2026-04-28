@@ -88,7 +88,7 @@ function Formateurs() {
 
   return (
     <div>
-      <h2 className="mb-4">🧑‍🏫 Gestion des Formateurs</h2>
+      <h2 className="mb-4">Gestion des Formateurs</h2>
 
       {message && (
         <div className={`alert ${message.includes('❌') ? 'alert-danger' : 'alert-success'}`}>
@@ -99,7 +99,7 @@ function Formateurs() {
       {/* Formulaire */}
       <div className="card mb-4">
         <div className="card-header">
-          <h5>{editingId ? '✏️ Modifier un formateur' : '➕ Ajouter un formateur'}</h5>
+          <h5>{editingId ? ' Modifier un formateur' : ' Ajouter un formateur'}</h5>
         </div>
         <div className="card-body">
           <form onSubmit={handleSubmit}>
@@ -145,7 +145,7 @@ function Formateurs() {
               </div>
               <div className="col-md-3">
                 <select
-                  className="form-select"
+                  className="form-control"
                   value={form.type}
                   onChange={(e) => setForm({ ...form, type: e.target.value })}
                   required
@@ -156,7 +156,7 @@ function Formateurs() {
               </div>
               <div className="col-md-3">
                 <select
-                  className="form-select"
+                  className="form-control"
                   value={form.employeur.id}
                   onChange={(e) => setForm({ ...form, employeur: { id: e.target.value } })}
                   required
@@ -174,8 +174,8 @@ function Formateurs() {
               </div>
               {editingId && (
                 <div className="col-md-1">
-                  <button type="button" className="btn btn-secondary w-100" onClick={handleCancel}>
-                    ✖
+                  <button type="button" className="btn btn-primary w-100" onClick={handleCancel}>
+                    Annuler
                   </button>
                 </div>
               )}
@@ -187,11 +187,11 @@ function Formateurs() {
       {/* Tableau */}
       <div className="card">
         <div className="card-header">
-          <h5>📋 Liste des Formateurs ({formateurs.length})</h5>
+          <h5>Liste des Formateurs </h5>
         </div>
         <div className="card-body">
           <table className="table table-striped table-hover">
-            <thead className="table-dark">
+            <thead className="table-secondary ">
               <tr>
                 <th>ID</th>
                 <th>Nom</th>
@@ -212,17 +212,19 @@ function Formateurs() {
                   <td>{formateur.email}</td>
                   <td>{formateur.tel}</td>
                   <td>
-                    <span className={`badge ${formateur.type === 'INTERNE' ? 'bg-success' : 'bg-warning text-dark'}`}>
-                      {formateur.type}
-                    </span>
+                      <span className={`badge ${formateur.type === 'INTERNE' ? 'bg-success' : 'bg-warning text-dark'}`} >
+                        {formateur.type}
+                      </span>
                   </td>
                   <td>{formateur.employeur?.nomEmployeur}</td>
                   <td>
-                    <button className="btn btn-sm btn-warning me-2" onClick={() => handleEdit(formateur)}>
-                      ✏️
+                    <button  style={{ background: 'rgba(124,58,237,0.25)', color: '#000', border: '1px solid rgba(139,92,246,0.4)' }}
+ className="btn btn-sm btn-warning me-2" onClick={() => handleEdit(formateur)}>
+                      Modifier
                     </button>
-                    <button className="btn btn-sm btn-danger" onClick={() => handleDelete(formateur.id)}>
-                      🗑️
+                    <button style={{ background: 'rgba(124,58,237,0.25)', color: '#000', border: '1px solid rgba(139,92,246,0.4)' }}
+ className="btn btn-sm btn-danger" onClick={() => handleDelete(formateur.id)}>
+                      Retirer
                     </button>
                   </td>
                 </tr>

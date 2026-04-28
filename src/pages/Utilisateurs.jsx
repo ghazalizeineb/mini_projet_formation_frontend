@@ -122,7 +122,7 @@ function Utilisateurs() {
                         Lier participant
                       </button>
                     )}
-                    <button className="btn btn-danger btn-sm" onClick={() => handleDelete(item.id)}>
+                    <button className="btn btn-danger btn-sm"style={{ background: 'rgba(124,58,237,0.25)', color: 'white', border: '1px solid rgba(139,92,246,0.4)' }} onClick={() => handleDelete(item.id)}>
                       Supprimer
                     </button>
                   </div>

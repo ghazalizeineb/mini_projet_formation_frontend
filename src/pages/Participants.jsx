@@ -101,7 +101,7 @@ function Participants() {
 
   return (
     <div>
-      <h2 className="mb-4">👥 Gestion des Participants</h2>
+      <h2 className="mb-4"> Gestion des Participants</h2>
 
       {message && (
         <div className={`alert ${message.includes('❌') ? 'alert-danger' : 'alert-success'}`}>
@@ -112,7 +112,7 @@ function Participants() {
       {/* Formulaire */}
       <div className="card mb-4">
         <div className="card-header">
-          <h5>{editingId ? '✏️ Modifier un participant' : '➕ Ajouter un participant'}</h5>
+          <h5>{editingId ? ' Modifier un participant' : ' Ajouter un participant'}</h5>
         </div>
         <div className="card-body">
           <form onSubmit={handleSubmit}>
@@ -157,7 +157,7 @@ function Participants() {
               </div>
               <div className="col-md-4">
                 <select
-                  className="form-select"
+                  className="form-control"
                   value={form.structure.id}
                   onChange={(e) => setForm({ ...form, structure: { id: e.target.value } })}
                   required
@@ -170,7 +170,7 @@ function Participants() {
               </div>
               <div className="col-md-4">
                 <select
-                  className="form-select"
+                  className="form-control"
                   value={form.profil.id}
                   onChange={(e) => setForm({ ...form, profil: { id: e.target.value } })}
                   required
@@ -188,7 +188,7 @@ function Participants() {
               </div>
               {editingId && (
                 <div className="col-md-2">
-                  <button type="button" className="btn btn-secondary w-100" onClick={handleCancel}>
+                  <button type="button" className="btn btn-primary w-100" onClick={handleCancel}>
                     Annuler
                   </button>
                 </div>
@@ -201,11 +201,11 @@ function Participants() {
       {/* Tableau */}
       <div className="card">
         <div className="card-header">
-          <h5>📋 Liste des Participants ({participants.length})</h5>
+          <h5> Liste des Participants ({participants.length})</h5>
         </div>
         <div className="card-body">
           <table className="table table-striped table-hover">
-            <thead className="table-dark">
+            <thead className="table-secondary">
               <tr>
                 <th>ID</th>
                 <th>Nom</th>
@@ -228,11 +228,13 @@ function Participants() {
                   <td>{p.structure?.libelle}</td>
                   <td>{p.profil?.libelle}</td>
                   <td>
-                    <button className="btn btn-sm btn-warning me-2" onClick={() => handleEdit(p)}>
-                      ✏️
+                    <button className="btn btn-sm btn-warning me-2"  style={{ background: 'rgba(124,58,237,0.25)', color: '#000', border: '1px solid rgba(139,92,246,0.4)' }}
+ onClick={() => handleEdit(p)}>
+                      Modifier
                     </button>
-                    <button className="btn btn-sm btn-danger" onClick={() => handleDelete(p.id)}>
-                      🗑️
+                    <button className="btn btn-sm btn-danger" style={{ background: 'rgba(124,58,237,0.25)', color: '#000', border: '1px solid rgba(139,92,246,0.4)' }}
+ onClick={() => handleDelete(p.id)}>
+                      Retirer
                     </button>
                   </td>
                 </tr>

@@ -153,7 +153,7 @@ function Formations() {
 
   return (
     <div>
-      <h2 className="mb-4">📋 Gestion des Formations</h2>
+      <h2 className="mb-4">Gestion des Formations</h2>
 
       {message && (
         <div className={`alert ${message.includes('❌') ? 'alert-danger' : 'alert-success'}`}>
@@ -164,7 +164,7 @@ function Formations() {
       {/* Formulaire */}
       <div className="card mb-4">
         <div className="card-header">
-          <h5>{editingId ? '✏️ Modifier une formation' : '➕ Ajouter une formation'}</h5>
+          <h5>{editingId ? ' Modifier une formation' : '   Ajouter une formation'}</h5>
         </div>
         <div className="card-body">
           <form onSubmit={handleSubmit}>
@@ -210,22 +210,22 @@ function Formations() {
                   required
                 />
               </div>
+             <div className="col-md-4">
+  <select
+    className="form-control"
+    value={form.domaineId}
+    onChange={(e) => setForm({ ...form, domaineId: e.target.value })}
+    required
+  >
+    <option value="">Choisir un domaine</option>
+    {domaines.map((d) => (
+      <option key={d.id} value={d.id}>{d.libelle}</option>
+    ))}
+  </select>
+</div>
               <div className="col-md-4">
                 <select
-                  className="form-select"
-                  value={form.domaineId}
-                  onChange={(e) => setForm({ ...form, domaineId: e.target.value })}
-                  required
-                >
-                  <option value="">Choisir un domaine</option>
-                  {domaines.map((d) => (
-                    <option key={d.id} value={d.id}>{d.libelle}</option>
-                  ))}
-                </select>
-              </div>
-              <div className="col-md-4">
-                <select
-                  className="form-select"
+                  className="form-control"
                   value={form.formateurId}
                   onChange={(e) => setForm({ ...form, formateurId: e.target.value })}
                   required
@@ -243,7 +243,7 @@ function Formations() {
               </div>
               {editingId && (
                 <div className="col-md-2">
-                  <button type="button" className="btn btn-secondary w-100" onClick={handleCancel}>
+                  <button type="button" className="btn btn-primary w-100" onClick={handleCancel}>
                     Annuler
                   </button>
                 </div>
@@ -256,11 +256,11 @@ function Formations() {
       {/* Tableau formations */}
       <div className="card mb-4">
         <div className="card-header">
-          <h5>📋 Liste des Formations ({formations.length})</h5>
+          <h5>Liste des Formations ({formations.length})</h5>
         </div>
         <div className="card-body">
           <table className="table table-striped table-hover">
-            <thead className="table-dark">
+            <thead className="table-secondary">
               <tr>
                 <th>ID</th>
                 <th>Titre</th>
@@ -285,19 +285,29 @@ function Formations() {
                   <td>{f.formateur?.nom} {f.formateur?.prenom}</td>
                   <td>
                     <button
-                      className="btn btn-sm btn-info text-white"
-                      onClick={() => handleShowParticipants(f)}
+className="btn btn-sm"
+style={{ background: 'rgba(124,58,237,0.25)', color: '#000', border: '1px solid rgba(139,92,246,0.4)' }}                onClick={() => handleShowParticipants(f)}
                     >
                       👥 {f.participants?.length || 0}
                     </button>
                   </td>
                   <td>
-                    <button className="btn btn-sm btn-warning me-2" onClick={() => handleEdit(f)}>
-                      ✏️
-                    </button>
-                    <button className="btn btn-sm btn-danger" onClick={() => handleDelete(f.id)}>
-                      🗑️
-                    </button>
+            <div style={{ display: 'flex', gap: 6, flexWrap: 'nowrap' }}>
+  <button
+    className="btn btn-sm"
+    style={{ background: 'rgba(124,58,237,0.25)', color: '#000', border: '1px solid rgba(139,92,246,0.4)' }}
+    onClick={() => handleEdit(f)}
+  >
+    Modifier
+  </button>
+  <button
+    className="btn btn-sm"
+    style={{ background: 'rgba(139,92,246,0.4)', color: '#000', border: '1px solid rgba(139,92,246,0.4)' }}
+    onClick={() => handleDelete(f.id)}
+  >
+    Retirer
+  </button>
+</div>
                   </td>
                 </tr>
               ))}
@@ -312,9 +322,10 @@ function Formations() {
       {/* Panel participants d'une formation */}
       {showParticipants && selectedFormation && (
         <div className="card border-info">
-          <div className="card-header bg-info text-white d-flex justify-content-between">
-            <h5>👥 Participants — {selectedFormation.titre}</h5>
-            <button className="btn btn-sm btn-light" onClick={() => setShowParticipants(false)}>
+          <div className="card-header d-flex justify-content-between"
+style={{ background: 'rgba(80, 15, 193, 0.15)', color: 'black', borderBottom: '1px solid rgba(139,92,246,0.25)' }}>
+            <h5> Participants — {selectedFormation.titre}</h5>
+            <button className="btn btn-sm btn-light" style={{ background: 'rgba(124,58,237,0.25)', color: '#000', border: '1px solid rgba(139,92,246,0.4)' }} onClick={() => setShowParticipants(false)}>
               ✖ Fermer
             </button>
           </div>
@@ -324,7 +335,7 @@ function Formations() {
             <div className="row g-2 mb-3">
               <div className="col-md-8">
                 <select
-                  className="form-select"
+                  className="form-control "
                   value={selectedParticipantId}
                   onChange={(e) => setSelectedParticipantId(e.target.value)}
                 >
@@ -337,8 +348,8 @@ function Formations() {
                 </select>
               </div>
               <div className="col-md-4">
-                <button className="btn btn-success w-100" onClick={handleAjouterParticipant}>
-                  ➕ Ajouter
+                <button className="btn btn-success w-100" style={{ background: 'rgba(124,58,237,0.25)', color: '#000', border: '1px solid rgba(139,92,246,0.4)' }} onClick={handleAjouterParticipant}>
+                   Ajouter
                 </button>
               </div>
             </div>
@@ -364,9 +375,9 @@ function Formations() {
                     <td>
                       <button
                         className="btn btn-sm btn-danger"
-                        onClick={() => handleRetirerParticipant(p.id)}
+                        onClick={() => handleRetirerParticipant(p.id)} style={{ background: 'rgba(124,58,237,0.25)', color: '#000', border: '1px solid rgba(139,92,246,0.4)' }}
                       >
-                        🗑️ Retirer
+                         Retirer
                       </button>
                     </td>
                   </tr>

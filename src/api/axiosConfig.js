@@ -23,7 +23,11 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
     (response) => response,
     (error) => {
-        if (error.response?.status === 401) {
+        // ⚠️ IMPORTANT : NE PAS rediriger si on est sur la page de login
+        const isLoginPage = window.location.pathname === '/login';
+        const isRegisterPage = window.location.pathname === '/register';
+        
+        if (error.response?.status === 401 && !isLoginPage && !isRegisterPage) {
             localStorage.removeItem('token');
             localStorage.removeItem('user');
             window.location.href = '/login';

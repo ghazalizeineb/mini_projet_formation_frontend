@@ -14,35 +14,103 @@ const navItems = [
   { section: 'Principal' },
   { to: '/admin', icon: '▦', label: 'Dashboard', end: true },
   { section: 'Gestion' },
-  { to: '/admin/formations',   icon: '📋', label: 'Formations' },
-  { to: '/admin/participants', icon: '👥', label: 'Participants' },
-  { to: '/admin/formateurs',   icon: '🎓', label: 'Formateurs' },
+  { to: '/admin/formations',    label: 'Formations' },
+  { to: '/admin/participants',  label: 'Participants' },
+  { to: '/admin/formateurs',   label: 'Formateurs' },
   { section: 'Référentiels' },
-  { to: '/admin/domaines',     icon: '📚', label: 'Domaines' },
-  { to: '/admin/structures',   icon: '🏢', label: 'Structures' },
-  { to: '/admin/profils',      icon: '🏷️', label: 'Profils' },
-  { to: '/admin/employeurs',   icon: '🏭', label: 'Employeurs' },
+  { to: '/admin/domaines',      label: 'Domaines' },
+  { to: '/admin/structures',   label: 'Structures' },
+  { to: '/admin/profils',      label: 'Profils' },
+  { to: '/admin/employeurs',    label: 'Employeurs' },
   { section: 'Administration' },
-  { to: '/admin/roles',        icon: '🔑', label: 'Rôles' },
-  { to: '/admin/utilisateurs', icon: '⚙️', label: 'Utilisateurs' },
+  { to: '/admin/roles',        label: 'Rôles' },
+  { to: '/admin/utilisateurs',  label: 'Utilisateurs' },
 ];
 
 function AdminLayout({ user, onLogout }) {
   const initials = user?.login?.substring(0, 2).toUpperCase();
 
   return (
-    <div style={{ display: 'flex', height: '100vh', overflow: 'hidden' }}>
+    <div style={{ display: 'flex', height: '100vh', overflow: 'hidden', background: 'linear-gradient(135deg, #12082a 0%, #1e0a4a 50%, #12082a 100%)', fontFamily: "'Syne', 'Inter', sans-serif" }}>
 
-      {/* Sidebar */}
-      <div style={{ width: 220, background: '#1a1f2e', display: 'flex', flexDirection: 'column', flexShrink: 0 }}>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Syne:wght@500;600;700;800&family=Inter:wght@300;400;500;600&display=swap');
+
+        .sidebar-link {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          padding: 8px 16px;
+          margin: 1px 8px;
+          border-radius: 8px;
+          font-size: 13px;
+          color: rgba(196,181,253,0.5);
+          text-decoration: none;
+          font-family: 'Inter', sans-serif;
+          font-weight: 400;
+          transition: background 0.15s, color 0.15s;
+        }
+        .sidebar-link:hover {
+          background: rgba(124,58,237,0.12);
+          color: #c4b5fd;
+        }
+        .sidebar-link.active {
+          background: rgba(124,58,237,0.2);
+          color: #ede9fe;
+          font-weight: 500;
+          border: 1px solid rgba(139,92,246,0.2);
+        }
+
+        .logout-btn {
+          width: 100%;
+          background: transparent;
+          color: #c4b5fd;
+          border: 1px solid #7c3aed;
+          border-radius: 8px;
+          padding: 8px;
+          font-size: 12px;
+          font-weight: 500;
+          cursor: pointer;
+          font-family: 'Inter', sans-serif;
+          transition: background 0.15s;
+        }
+        .logout-btn:hover { background: rgba(124,58,237,0.15); }
+      `}</style>
+
+      {/* ── Sidebar ── */}
+      <div style={{
+        width: 220,
+        background: 'rgba(18,8,42,0.97)',
+        borderRight: '1px solid rgba(167,139,250,0.12)',
+        display: 'flex',
+        flexDirection: 'column',
+        flexShrink: 0,
+      }}>
 
         {/* Brand */}
-        <div style={{ padding: '20px 16px', borderBottom: '0.5px solid rgba(255,255,255,0.08)' }}>
+        <div style={{
+          padding: '18px 16px',
+          borderBottom: '1px solid rgba(167,139,250,0.08)',
+        }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <div style={{ width: 34, height: 34, borderRadius: '50%', background: '#e24b4a', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, color: '#fff', fontWeight: 500 }}>G</div>
+            <div style={{
+              width: 34, height: 34, borderRadius: 10,
+              background: 'rgba(124,58,237,0.3)',
+              border: '1px solid rgba(139,92,246,0.4)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}>
+              {/* <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#c4b5fd" strokeWidth="2.5">
+                <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
+                <path d="M6 12v5c3 3 9 3 12 0v-5"/>
+              </svg> */}
+            </div>
             <div>
-              <div style={{ fontSize: 13, fontWeight: 500, color: '#fff' }}>Gestion Formation</div>
-              <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.35)' }}>Excellent Training</div>
+              <div style={{ fontSize: 13, fontWeight: 700, color: '#ede9fe', fontFamily: "'Syne', sans-serif" }}>
+                Excellent Training
+              </div>
+              <div style={{ fontSize: 10, color: '#6d5a99', fontFamily: "'Inter', sans-serif" }}>
+                Administration
+              </div>
             </div>
           </div>
         </div>
@@ -51,7 +119,14 @@ function AdminLayout({ user, onLogout }) {
         <nav style={{ flex: 1, padding: '10px 0', overflowY: 'auto' }}>
           {navItems.map((item, i) =>
             item.section ? (
-              <div key={i} style={{ fontSize: 10, color: 'rgba(255,255,255,0.28)', padding: '10px 16px 4px', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+              <div key={i} style={{
+                fontSize: 10, color: '#4a3d6b',
+                padding: '12px 16px 4px',
+                letterSpacing: '0.1em',
+                textTransform: 'uppercase',
+                fontFamily: "'Inter', sans-serif",
+                fontWeight: 500,
+              }}>
                 {item.section}
               </div>
             ) : (
@@ -64,35 +139,83 @@ function AdminLayout({ user, onLogout }) {
           )}
         </nav>
 
-        {/* Footer */}
-        <div style={{ padding: '12px 16px', borderTop: '0.5px solid rgba(255,255,255,0.08)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
-            <div style={{ width: 32, height: 32, borderRadius: '50%', background: '#e24b4a', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 500, color: '#fff' }}>
+        {/* Footer sidebar */}
+        <div style={{
+          padding: '14px 16px',
+          borderTop: '1px solid rgba(167,139,250,0.08)',
+        }}>
+          <div style={{
+            display: 'flex', alignItems: 'center', gap: 8,
+            background: 'rgba(139,92,246,0.08)',
+            border: '1px solid rgba(139,92,246,0.2)',
+            borderRadius: 8, padding: '8px 10px',
+            marginBottom: 10,
+          }}>
+            <div style={{
+              width: 28, height: 28, borderRadius: '50%',
+              background: 'rgba(124,58,237,0.5)',
+              border: '1px solid rgba(139,92,246,0.4)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontSize: 11, fontWeight: 700, color: '#c4b5fd',
+              fontFamily: "'Inter', sans-serif",
+              flexShrink: 0,
+            }}>
               {initials}
             </div>
-            <div>
-              <div style={{ fontSize: 12, color: '#fff' }}>{user?.login}</div>
-              <div style={{ fontSize: 10, color: '#e24b4a' }}>Administrateur</div>
+            <div style={{ overflow: 'hidden' }}>
+              <div style={{
+                fontSize: 12, color: '#c4b5fd',
+                fontFamily: "'Inter', sans-serif",
+                lineHeight: 1.3,
+                whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+              }}>
+                {user?.login}
+              </div>
+              <div style={{ fontSize: 10, color: '#7c3aed', fontFamily: "'Inter', sans-serif", lineHeight: 1.3 }}>
+                Administrateur
+              </div>
             </div>
           </div>
-          <button onClick={onLogout} style={{ width: '100%', background: 'rgba(226,75,74,0.15)', color: '#f09595', border: '0.5px solid rgba(226,75,74,0.3)', borderRadius: 8, padding: '7px', fontSize: 12, cursor: 'pointer' }}>
+          <button className="logout-btn" onClick={onLogout}>
             Déconnexion
           </button>
         </div>
       </div>
 
-      {/* Main */}
+      {/* ── Main ── */}
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-        <div style={{ height: 52, background: '#fff', borderBottom: '0.5px solid #e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 24px', flexShrink: 0 }}>
-          <span style={{ fontSize: 13, color: '#9ca3af' }}>
+
+        {/* Topbar */}
+        <div style={{
+          height: 56,
+          background: 'rgba(18,8,42,0.97)',
+          borderBottom: '1px solid rgba(167,139,250,0.12)',
+          backdropFilter: 'blur(12px)',
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          padding: '0 28px', flexShrink: 0,
+        }}>
+          <span style={{ fontSize: 13, color: '#4a3d6b', fontFamily: "'Inter', sans-serif" }}>
             {new Date().toLocaleDateString('fr-FR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
           </span>
-          <span style={{ fontSize: 12, background: '#fcebeb', color: '#a32d2d', padding: '4px 10px', borderRadius: 20, fontWeight: 500 }}>
+          <span style={{
+            fontSize: 11, fontWeight: 600,
+            background: 'rgba(124,58,237,0.15)',
+            color: '#c4b5fd',
+            border: '1px solid rgba(139,92,246,0.25)',
+            padding: '4px 12px', borderRadius: 20,
+            fontFamily: "'Inter', sans-serif",
+            textTransform: 'uppercase', letterSpacing: '0.8px',
+          }}>
             Administrateur
           </span>
         </div>
 
-        <div style={{ flex: 1, overflowY: 'auto', padding: '24px' }}>
+        {/* Content */}
+        <div style={{
+          flex: 1, overflowY: 'auto',
+          padding: '28px',
+          background: 'transparent',
+        }}>
           <Routes>
             <Route index element={<Dashboard user={user} basePath="/admin" />} />
             <Route path="formations"   element={<Formations />} />

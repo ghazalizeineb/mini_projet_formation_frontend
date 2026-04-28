@@ -64,7 +64,7 @@ function Domaines() {
 
   return (
     <div>
-      <h2 className="mb-4">📚 Gestion des Domaines</h2>
+      <h2 className="mb-4"> Gestion des Domaines</h2>
 
       {message && (
         <div className={`alert ${message.includes('❌') ? 'alert-danger' : 'alert-success'}`}>
@@ -75,7 +75,7 @@ function Domaines() {
       {/* Formulaire */}
       <div className="card mb-4">
         <div className="card-header">
-          <h5>{editingId ? '✏️ Modifier un domaine' : '➕ Ajouter un domaine'}</h5>
+          <h5>{editingId ? ' Modifier un domaine' : ' Ajouter un domaine'}</h5>
         </div>
         <div className="card-body">
           <form onSubmit={handleSubmit} className="row g-3">
@@ -96,7 +96,7 @@ function Domaines() {
             </div>
             {editingId && (
               <div className="col-md-2">
-                <button type="button" className="btn btn-secondary w-100" onClick={handleCancel}>
+                <button type="button" className="btn btn-primary w-100" onClick={handleCancel}>
                   Annuler
                 </button>
               </div>
@@ -108,11 +108,11 @@ function Domaines() {
       {/* Tableau */}
       <div className="card">
         <div className="card-header">
-          <h5>📋 Liste des Domaines ({domaines.length})</h5>
+          <h5> Liste des Domaines </h5>
         </div>
         <div className="card-body">
           <table className="table table-striped table-hover">
-            <thead className="table-dark">
+            <thead className="table-secondary">
               <tr>
                 <th>ID</th>
                 <th>Libellé</th>
@@ -126,16 +126,17 @@ function Domaines() {
                   <td>{domaine.libelle}</td>
                   <td>
                     <button
-                      className="btn btn-sm btn-warning me-2"
+                      className="btn btn-sm btn-warning me-2" style={{ background: 'rgba(124,58,237,0.25)', color: '#000', border: '1px solid rgba(139,92,246,0.4)' }}
+
                       onClick={() => handleEdit(domaine)}
                     >
-                      ✏️ Modifier
+                       Modifier
                     </button>
                     <button
-                      className="btn btn-sm btn-danger"
+                      className="btn btn-sm btn-danger" style={{ background: 'rgba(124,58,237,0.25)', color: '#000', border: '1px solid rgba(139,92,246,0.4)' }}
                       onClick={() => handleDelete(domaine.id)}
                     >
-                      🗑️ Supprimer
+                       Supprimer
                     </button>
                   </td>
                 </tr>
