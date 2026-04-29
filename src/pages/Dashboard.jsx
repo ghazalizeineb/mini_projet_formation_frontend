@@ -1,21 +1,22 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import {
+  BarChart, Bar, PieChart, Pie, Cell, LineChart, Line,
+  XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer
+} from 'recharts';
 import api from '../api/axiosConfig';
 
-function Dashboard({ basePath = '/admin' }) {
+const COLORS = ['#8b5cf6', '#10b981', '#f59e0b', '#ef4444', '#3b82f6', '#ec4899', '#6366f1', '#14b8a6'];
+
+function Dashboard({ user, basePath = '/admin' }) {
   const [stats, setStats] = useState({
-    formations: 0, participants: 0, formateurs: 0, domaines: 0,
-    budget_total: 0, formations_annee_courante: 0,
-    formateurs_internes: 0, formateurs_externes: 0,
+    formations: 0, participants: 0, formateurs: 0,
+    domaines: 0, budgetTotal: 0
   });
   const [formations, setFormations] = useState([]);
-  const [topFormations, setTopFormations] = useState([]);
-  const [formationsByDomaine, setFormationsByDomaine] = useState([]);
-  const [formationsByAnnee, setFormationsByAnnee] = useState([]);
+  const [participants, setParticipants] = useState([]);
+  const [domaines, setDomaines] = useState([]);
+  const [structures, setStructures] = useState([]);
   const [loading, setLoading] = useState(true);
-  const navigate = useNavigate();
-  const user = JSON.parse(localStorage.getItem('user'));
-  const anneeActuelle = new Date().getFullYear();
 
   useEffect(() => {
     fetchAll();
@@ -24,410 +25,341 @@ function Dashboard({ basePath = '/admin' }) {
   const fetchAll = async () => {
     setLoading(true);
     try {
-      const [fRes, pRes, foRes, dRes] = await Promise.all([
+      const [fRes, pRes, dRes, sRes, foRes] = await Promise.all([
         api.get('/formations'),
         api.get('/participants'),
-        api.get('/formateurs'),
         api.get('/domaines'),
+        api.get('/structures'),
+        api.get('/formateurs'),
       ]);
+      setFormations(fRes.data);
+      setParticipants(pRes.data);
+      setDomaines(dRes.data);
+      setStructures(sRes.data);
 
-      const allFormations = fRes.data;
-      const allFormateurs = foRes.data;
-
-      // Calculs statistiques
-      const budgetTotal = allFormations.reduce((sum, f) => sum + (f.budget || 0), 0);
-      const formationsAnnee = allFormations.filter(f => f.annee === anneeActuelle);
-      const formateursInternes = allFormateurs.filter(f => f.type === 'INTERNE');
-      const formateursExternes = allFormateurs.filter(f => f.type === 'EXTERNE');
-
+      const budgetTotal = fRes.data.reduce((sum, f) => sum + (f.budget || 0), 0);
       setStats({
-        formations: allFormations.length,
+        formations: fRes.data.length,
         participants: pRes.data.length,
-        formateurs: allFormateurs.length,
+        formateurs: foRes.data.length,
         domaines: dRes.data.length,
-        budget_total: budgetTotal,
-        formations_annee_courante: formationsAnnee.length,
-        formateurs_internes: formateursInternes.length,
-        formateurs_externes: formateursExternes.length,
+        budgetTotal
       });
+    } catch (e) { console.error(e); }
+    finally { setLoading(false); }
+  };
 
-      setFormations(allFormations);
+  // ── Données graphiques ──────────────────────────────────
 
-      // Top formations par nombre de participants
-      const top = [...allFormations]
-        .sort((a, b) => (b.participants?.length || 0) - (a.participants?.length || 0))
-        .slice(0, 5);
-      setTopFormations(top);
+  // 1. Évolution formations par année (courbe)
+  const formationsParAnnee = () => {
+    const map = {};
+    formations.forEach(f => {
+      map[f.annee] = (map[f.annee] || 0) + 1;
+    });
+    return Object.entries(map)
+      .sort(([a], [b]) => a - b)
+      .map(([annee, count]) => ({ annee, formations: count }));
+  };
 
-      // Formations par domaine
-      const byDomaine = {};
-      allFormations.forEach(f => {
-        const d = f.domaine?.libelle || 'Autre';
-        byDomaine[d] = (byDomaine[d] || 0) + 1;
-      });
-      setFormationsByDomaine(
-        Object.entries(byDomaine)
-          .map(([label, count]) => ({ label, count }))
-          .sort((a, b) => b.count - a.count)
+  // 2. Répartition par domaine (camembert)
+  const formationsParDomaine = () => {
+    const map = {};
+    formations.forEach(f => {
+      const label = f.domaine?.libelle || 'Autre';
+      map[label] = (map[label] || 0) + 1;
+    });
+    return Object.entries(map).map(([name, value]) => ({ name, value }));
+  };
+
+  // 3. Inscriptions par structure (barres)
+  const inscriptionsParStructure = () => {
+    const map = {};
+    participants.forEach(p => {
+      const label = p.structure?.libelle
+        ? p.structure.libelle.replace('Direction Régionale de ', 'D.R. ').replace('Direction des ', 'Dir. ').replace('Direction ', 'Dir. ')
+        : 'Autre';
+      map[label] = (map[label] || 0) + 1;
+    });
+    return Object.entries(map)
+      .sort(([, a], [, b]) => b - a)
+      .slice(0, 8)
+      .map(([structure, participants]) => ({ structure, participants }));
+  };
+
+  // 4. Top 5 formations (barres horizontales)
+  const topFormations = () => {
+    return [...formations]
+      .sort((a, b) => (b.participants?.length || 0) - (a.participants?.length || 0))
+      .slice(0, 5)
+      .map(f => ({
+        titre: f.titre.length > 30 ? f.titre.substring(0, 30) + '...' : f.titre,
+        inscrits: f.participants?.length || 0,
+        budget: f.budget
+      }));
+  };
+
+  // 5. Budget par domaine (barres)
+  const budgetParDomaine = () => {
+    const map = {};
+    formations.forEach(f => {
+      const label = f.domaine?.libelle || 'Autre';
+      map[label] = (map[label] || 0) + (f.budget || 0);
+    });
+    return Object.entries(map)
+      .sort(([, a], [, b]) => b - a)
+      .map(([domaine, budget]) => ({
+        domaine: domaine.length > 20 ? domaine.substring(0, 20) + '..' : domaine,
+        budget
+      }));
+  };
+
+  // ── Styles ──────────────────────────────────────────────
+  const cardStyle = {
+    background: '#13131f',
+    border: '1px solid rgba(139,92,246,0.15)',
+    borderRadius: 12, padding: '20px 24px'
+  };
+
+  const titleStyle = {
+    fontSize: 14, fontWeight: 600, color: '#f1f0ff',
+    marginBottom: 20, paddingBottom: 12,
+    borderBottom: '1px solid rgba(139,92,246,0.12)'
+  };
+
+  const tooltipStyle = {
+    backgroundColor: '#13131f',
+    border: '1px solid rgba(139,92,246,0.3)',
+    borderRadius: 8, color: '#f1f0ff', fontSize: 12
+  };
+
+  const CustomTooltip = ({ active, payload, label }) => {
+    if (active && payload && payload.length) {
+      return (
+        <div style={tooltipStyle}>
+          <div style={{ padding: '8px 12px' }}>
+            <p style={{ color: '#c4b5fd', fontWeight: 600, marginBottom: 4 }}>{label}</p>
+            {payload.map((p, i) => (
+              <p key={i} style={{ color: p.color, margin: '2px 0' }}>
+                {p.name} : {typeof p.value === 'number' && p.value > 100
+                  ? p.value.toLocaleString('fr-TN') + ' DT'
+                  : p.value}
+              </p>
+            ))}
+          </div>
+        </div>
       );
-
-      // Formations par année
-      const byAnnee = {};
-      allFormations.forEach(f => {
-        const a = f.annee;
-        byAnnee[a] = (byAnnee[a] || 0) + 1;
-      });
-      setFormationsByAnnee(
-        Object.entries(byAnnee)
-          .map(([annee, count]) => ({ annee, count }))
-          .sort((a, b) => a.annee - b.annee)
-      );
-
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setLoading(false);
     }
+    return null;
   };
-
-  const domaineBadge = (libelle) => {
-    const map = {
-      'Informatique': { bg: '#e6f1fb', color: '#185fa5' },
-      'Finance':      { bg: '#faeeda', color: '#854f0b' },
-      'Management':   { bg: '#e1f5ee', color: '#0f6e56' },
-      'Comptabilité': { bg: '#eeedfe', color: '#534ab7' },
-      'Mécanique':    { bg: '#faece7', color: '#993c1d' },
-    };
-    return map[libelle] || { bg: '#e8e8fb', color: '#4f46e5' };
-  };
-
-  // Barre de progression pour le graphique
-  const maxDomaine = Math.max(...formationsByDomaine.map(d => d.count), 1);
-  const maxAnnee = Math.max(...formationsByAnnee.map(a => a.count), 1);
-
-  const domaineColors = ['#6378ff', '#1D9E75', '#f59e0b', '#e24b4a', '#8b5cf6', '#06b6d4'];
 
   if (loading) {
     return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 400 }}>
-        <div style={{ textAlign: 'center' }}>
-          <div className="spinner-border text-primary"></div>
-          <p style={{ marginTop: 12, fontSize: 13, color: '#6b7280' }}>Chargement des statistiques...</p>
-        </div>
+      <div style={{ textAlign: 'center', padding: '80px 20px', color: 'rgba(255,255,255,0.3)' }}>
+        Chargement du tableau de bord...
       </div>
     );
   }
 
   return (
-    <div style={{ padding: '0 0 40px' }}>
+    <div style={{ fontFamily: '-apple-system, sans-serif' }}>
 
-      {/* Header */}
+      {/* En-tête */}
       <div style={{ marginBottom: 28 }}>
-        <h1 style={{ fontSize: 22, fontWeight: 600, color: '#111827', marginBottom: 4 }}>
-          Bonjour, {user?.login} 👋
+        <h1 style={{ fontSize: 22, fontWeight: 700, color: '#f1f0ff', marginBottom: 4 }}>
+          Tableau de bord
         </h1>
-        <p style={{ fontSize: 13, color: '#6b7280' }}>
-          Tableau de bord — Centre de formation Excellent Training —
-          <span style={{ color: '#6378ff', fontWeight: 500 }}> {new Date().toLocaleDateString('fr-FR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span>
+        <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.35)' }}>
+          Suivi et évaluation des activités du centre FormaPro
         </p>
       </div>
 
-      {/* KPI Cards principales */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14, marginBottom: 20 }}>
+      {/* ── KPIs ── */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 14, marginBottom: 28 }}>
         {[
-          { label: 'Formations totales', value: stats.formations,  color: '#6378ff', sub: `${stats.formations_annee_courante} cette année`, path: `${basePath}/formations` },
-          { label: 'Participants', value: stats.participants,  color: '#1D9E75', sub: 'inscrits au total', path: `${basePath}/participants` },
-          { label: 'Formateurs', value: stats.formateurs,color: '#f59e0b', sub: `${stats.formateurs_internes} int. / ${stats.formateurs_externes} ext.`, path: `${basePath}/formateurs` },
-          { label: 'Budget total', value: stats.budget_total.toLocaleString() + ' DT',  color: '#e24b4a', sub: 'toutes formations confondues', path: null },
-        ].map(card => (
-          <div key={card.label}
-            onClick={() => card.path && navigate(card.path)}
-            style={{
-              background: '#fff', border: '0.5px solid #e5e7eb', borderRadius: 14,
-              padding: '18px 20px', cursor: card.path ? 'pointer' : 'default',
-              transition: 'box-shadow 0.15s',
-              boxShadow: '0 1px 4px rgba(0,0,0,0.04)'
-            }}
-            onMouseEnter={e => card.path && (e.currentTarget.style.boxShadow = '0 4px 16px rgba(0,0,0,0.10)')}
-            onMouseLeave={e => card.path && (e.currentTarget.style.boxShadow = '0 1px 4px rgba(0,0,0,0.04)')}
-          >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 14 }}>
-              <div style={{
-                width: 40, height: 40, borderRadius: 10,
-                background: card.color + '15',
-                display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18
-              }}>
-                {card.icon}
-              </div>
-              {card.path && (
-                <span style={{ fontSize: 11, color: '#6378ff', cursor: 'pointer' }}>Voir →</span>
-              )}
+          { label: 'Formations',   value: stats.formations,               color: '#8b5cf6', sub: 'Total' },
+          { label: 'Participants', value: stats.participants,              color: '#10b981', sub: 'Inscrits' },
+          { label: 'Formateurs',   value: stats.formateurs,               color: '#f59e0b', sub: 'Actifs' },
+          { label: 'Domaines',     value: stats.domaines,                  color: '#3b82f6', sub: 'Catégories' },
+          { label: 'Budget total', value: stats.budgetTotal.toLocaleString('fr-TN') + ' DT', color: '#ec4899', sub: 'Toutes années', big: true },
+        ].map(s => (
+          <div key={s.label} style={{ ...cardStyle, padding: '16px 18px' }}>
+            <div style={{ width: 34, height: 34, borderRadius: 8, background: s.color + '22', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 12 }}>
+              <div style={{ width: 10, height: 10, borderRadius: '50%', background: s.color }} />
             </div>
-            <div style={{ fontSize: 26, fontWeight: 600, color: '#111827', marginBottom: 4 }}>
-              {card.value}
-            </div>
-            <div style={{ fontSize: 12, color: '#374151', fontWeight: 500, marginBottom: 2 }}>
-              {card.label}
-            </div>
-            <div style={{ fontSize: 11, color: '#9ca3af' }}>{card.sub}</div>
+            <div style={{ fontSize: s.big ? 16 : 26, fontWeight: 700, color: '#f1f0ff', lineHeight: 1.2 }}>{s.value}</div>
+            <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', marginTop: 4 }}>{s.label}</div>
+            <div style={{ fontSize: 11, color: s.color, marginTop: 2 }}>{s.sub}</div>
           </div>
         ))}
       </div>
 
-      {/* KPI secondaires */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14, marginBottom: 24 }}>
-        {[
-          { label: 'Formations ' + anneeActuelle, value: stats.formations_annee_courante,  color: '#8b5cf6' },
-          { label: 'Formateurs internes', value: stats.formateurs_internes,  color: '#06b6d4' },
-          { label: 'Formateurs externes', value: stats.formateurs_externes,  color: '#f97316' },
-          { label: 'Domaines actifs', value: stats.domaines, color: '#10b981' },
-        ].map(card => (
-          <div key={card.label} style={{
-            background: '#fff', border: '0.5px solid #e5e7eb', borderRadius: 14,
-            padding: '14px 18px', display: 'flex', alignItems: 'center', gap: 14
-          }}>
-            <div style={{
-              width: 36, height: 36, borderRadius: 10,
-              background: card.color + '15',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16,
-              flexShrink: 0
-            }}>
-              {card.icon}
-            </div>
-            <div>
-              <div style={{ fontSize: 22, fontWeight: 600, color: '#111827' }}>{card.value}</div>
-              <div style={{ fontSize: 11, color: '#6b7280' }}>{card.label}</div>
-            </div>
-          </div>
-        ))}
-      </div>
+      {/* ── Ligne 1 : Courbe + Camembert ── */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, marginBottom: 20 }}>
 
-      {/* Graphiques */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 24 }}>
-
-        {/* Formations par domaine */}
-        <div style={{
-          background: '#fff', border: '0.5px solid #e5e7eb',
-          borderRadius: 14, padding: '20px 24px'
-        }}>
-          <div style={{ marginBottom: 20 }}>
-            <div style={{ fontSize: 14, fontWeight: 600, color: '#111827' }}>
-               Formations par domaine
-            </div>
-            <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 2 }}>
-              Répartition par domaine de formation
-            </div>
-          </div>
-          {formationsByDomaine.map((d, i) => (
-            <div key={d.label} style={{ marginBottom: 14 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <div style={{
-                    width: 8, height: 8, borderRadius: '50%',
-                    background: domaineColors[i % domaineColors.length]
-                  }} />
-                  <span style={{ fontSize: 12, color: '#374151', fontWeight: 500 }}>{d.label}</span>
-                </div>
-                <span style={{ fontSize: 12, fontWeight: 600, color: '#111827' }}>
-                  {d.count} <span style={{ color: '#9ca3af', fontWeight: 400 }}>formation{d.count > 1 ? 's' : ''}</span>
-                </span>
-              </div>
-              <div style={{ height: 6, background: '#f3f4f6', borderRadius: 10, overflow: 'hidden' }}>
-                <div style={{
-                  height: '100%',
-                  width: `${(d.count / maxDomaine) * 100}%`,
-                  background: domaineColors[i % domaineColors.length],
-                  borderRadius: 10,
-                  transition: 'width 0.5s ease'
-                }} />
-              </div>
-            </div>
-          ))}
-          {formationsByDomaine.length === 0 && (
-            <p style={{ textAlign: 'center', color: '#9ca3af', fontSize: 13 }}>Aucune donnée</p>
-          )}
+        {/* Évolution formations par année */}
+        <div style={cardStyle}>
+          <div style={titleStyle}>📈 Évolution des formations par année</div>
+          <ResponsiveContainer width="100%" height={240}>
+            <LineChart data={formationsParAnnee()} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(139,92,246,0.1)" />
+              <XAxis dataKey="annee" stroke="rgba(255,255,255,0.3)" tick={{ fill: 'rgba(255,255,255,0.5)', fontSize: 11 }} />
+              <YAxis stroke="rgba(255,255,255,0.3)" tick={{ fill: 'rgba(255,255,255,0.5)', fontSize: 11 }} allowDecimals={false} />
+              <Tooltip content={<CustomTooltip />} />
+              <Legend wrapperStyle={{ fontSize: 12, color: 'rgba(255,255,255,0.5)' }} />
+              <Line type="monotone" dataKey="formations" name="Formations" stroke="#8b5cf6" strokeWidth={2.5} dot={{ fill: '#8b5cf6', r: 5 }} activeDot={{ r: 7 }} />
+            </LineChart>
+          </ResponsiveContainer>
         </div>
 
-        {/* Formations par année */}
-        <div style={{
-          background: '#fff', border: '0.5px solid #e5e7eb',
-          borderRadius: 14, padding: '20px 24px'
-        }}>
-          <div style={{ marginBottom: 20 }}>
-            <div style={{ fontSize: 14, fontWeight: 600, color: '#111827' }}>
-               Évolution par année
-            </div>
-            <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 2 }}>
-              Nombre de formations organisées par année
-            </div>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'flex-end', gap: 12, height: 140, padding: '0 8px' }}>
-            {formationsByAnnee.map((a, i) => (
-              <div key={a.annee} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}>
-                <span style={{ fontSize: 11, fontWeight: 600, color: '#111827' }}>{a.count}</span>
-                <div style={{
-                  width: '100%',
-                  height: `${(a.count / maxAnnee) * 110}px`,
-                  background: a.annee === anneeActuelle
-                    ? 'linear-gradient(180deg, #6378ff, #4f6ef7)'
-                    : 'linear-gradient(180deg, #c7d2fe, #e0e7ff)',
-                  borderRadius: '6px 6px 0 0',
-                  minHeight: 8,
-                  transition: 'height 0.5s ease'
-                }} />
-                <span style={{ fontSize: 10, color: '#6b7280', fontWeight: a.annee === anneeActuelle ? 600 : 400 }}>
-                  {a.annee}
+        {/* Répartition par domaine */}
+        <div style={cardStyle}>
+          <div style={titleStyle}>🥧 Répartition des formations par domaine</div>
+          <ResponsiveContainer width="100%" height={240}>
+            <PieChart>
+              <Pie
+                data={formationsParDomaine()}
+                cx="45%" cy="50%" outerRadius={85} innerRadius={40}
+                dataKey="value" nameKey="name"
+                label={({ name, percent }) => `${(percent * 100).toFixed(0)}%`}
+                labelLine={{ stroke: 'rgba(255,255,255,0.3)' }}
+              >
+                {formationsParDomaine().map((_, i) => (
+                  <Cell key={i} fill={COLORS[i % COLORS.length]} stroke="transparent" />
+                ))}
+              </Pie>
+              <Tooltip content={<CustomTooltip />} />
+              <Legend
+                layout="vertical" align="right" verticalAlign="middle"
+                wrapperStyle={{ fontSize: 11, color: 'rgba(255,255,255,0.6)' }}
+              />
+            </PieChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+
+      {/* ── Ligne 2 : Barres structures + Top formations ── */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, marginBottom: 20 }}>
+
+        {/* Participants par structure */}
+        <div style={cardStyle}>
+          <div style={titleStyle}>🏢 Participants par structure</div>
+          <ResponsiveContainer width="100%" height={260}>
+            <BarChart data={inscriptionsParStructure()} margin={{ top: 5, right: 10, bottom: 40, left: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(139,92,246,0.1)" />
+              <XAxis dataKey="structure" stroke="rgba(255,255,255,0.3)"
+                tick={{ fill: 'rgba(255,255,255,0.5)', fontSize: 9 }}
+                angle={-35} textAnchor="end" interval={0} />
+              <YAxis stroke="rgba(255,255,255,0.3)" tick={{ fill: 'rgba(255,255,255,0.5)', fontSize: 11 }} allowDecimals={false} />
+              <Tooltip content={<CustomTooltip />} />
+              <Bar dataKey="participants" name="Participants" fill="#10b981" radius={[4, 4, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+
+        {/* Top 5 formations */}
+        <div style={cardStyle}>
+          <div style={titleStyle}>🏆 Top 5 formations par inscriptions</div>
+          <ResponsiveContainer width="100%" height={260}>
+            <BarChart data={topFormations()} layout="vertical" margin={{ top: 5, right: 30, bottom: 5, left: 10 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(139,92,246,0.1)" />
+              <XAxis type="number" stroke="rgba(255,255,255,0.3)" tick={{ fill: 'rgba(255,255,255,0.5)', fontSize: 11 }} allowDecimals={false} />
+              <YAxis type="category" dataKey="titre" width={130}
+                stroke="rgba(255,255,255,0.3)"
+                tick={{ fill: 'rgba(255,255,255,0.5)', fontSize: 9 }} />
+              <Tooltip content={<CustomTooltip />} />
+              <Bar dataKey="inscrits" name="Inscrits" fill="#8b5cf6" radius={[0, 4, 4, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+
+      {/* ── Ligne 3 : Budget par domaine ── */}
+      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 20, marginBottom: 20 }}>
+
+        {/* Budget par domaine */}
+        <div style={cardStyle}>
+          <div style={titleStyle}>💰 Budget investi par domaine (DT)</div>
+          <ResponsiveContainer width="100%" height={240}>
+            <BarChart data={budgetParDomaine()} margin={{ top: 5, right: 20, bottom: 40, left: 20 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(139,92,246,0.1)" />
+              <XAxis dataKey="domaine" stroke="rgba(255,255,255,0.3)"
+                tick={{ fill: 'rgba(255,255,255,0.5)', fontSize: 9 }}
+                angle={-25} textAnchor="end" interval={0} />
+              <YAxis stroke="rgba(255,255,255,0.3)" tick={{ fill: 'rgba(255,255,255,0.5)', fontSize: 11 }} />
+              <Tooltip content={<CustomTooltip />} />
+              <Bar dataKey="budget" name="Budget (DT)" radius={[4, 4, 0, 0]}>
+                {budgetParDomaine().map((_, i) => (
+                  <Cell key={i} fill={COLORS[i % COLORS.length]} />
+                ))}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+
+        {/* Tableau résumé dernières formations */}
+        <div style={cardStyle}>
+          <div style={titleStyle}>📋 Dernières formations ajoutées</div>
+          <div style={{ overflowY: 'auto', maxHeight: 240 }}>
+            {[...formations].reverse().slice(0, 6).map(f => (
+              <div key={f.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: '1px solid rgba(139,92,246,0.08)' }}>
+                <div>
+                  <div style={{ fontSize: 12, fontWeight: 500, color: '#f1f0ff', marginBottom: 2 }}>
+                    {f.titre.length > 28 ? f.titre.substring(0, 28) + '...' : f.titre}
+                  </div>
+                  <div style={{ fontSize: 10, color: 'rgba(139,92,246,0.7)' }}>{f.annee} — {f.duree}j</div>
+                </div>
+                <span style={{ background: 'rgba(16,185,129,0.12)', color: '#6ee7b7', fontSize: 10, fontWeight: 600, padding: '3px 8px', borderRadius: 20, whiteSpace: 'nowrap', marginLeft: 8 }}>
+                  {f.participants?.length || 0} inscrits
                 </span>
               </div>
             ))}
-            {formationsByAnnee.length === 0 && (
-              <p style={{ textAlign: 'center', color: '#9ca3af', fontSize: 13, width: '100%' }}>Aucune donnée</p>
-            )}
           </div>
         </div>
       </div>
 
-      {/* Top formations + Dernières formations */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.6fr', gap: 16 }}>
-
-        {/* Top 5 formations */}
-        <div style={{
-          background: '#fff', border: '0.5px solid #e5e7eb',
-          borderRadius: 14, padding: '20px 24px'
-        }}>
-          <div style={{ marginBottom: 16 }}>
-            <div style={{ fontSize: 14, fontWeight: 600, color: '#111827' }}>
-               Top formations
-            </div>
-            <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 2 }}>
-              Par nombre de participants inscrits
-            </div>
-          </div>
-          {topFormations.map((f, i) => (
-            <div key={f.id} style={{
-              display: 'flex', alignItems: 'center', gap: 12,
-              padding: '10px 0',
-              borderBottom: i < topFormations.length - 1 ? '0.5px solid #f3f4f6' : 'none'
-            }}>
-              <div style={{
-                width: 28, height: 28, borderRadius: 8, flexShrink: 0,
-                background: i === 0 ? '#fef3c7' : i === 1 ? '#f3f4f6' : i === 2 ? '#fde8e0' : '#f9fafb',
-                color: i === 0 ? '#d97706' : i === 1 ? '#6b7280' : i === 2 ? '#c2410c' : '#9ca3af',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: 13, fontWeight: 700
-              }}>
-                {i + 1}
-              </div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{
-                  fontSize: 12, fontWeight: 500, color: '#111827',
-                  whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'
-                }}>
-                  {f.titre}
-                </div>
-                <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 2 }}>
-                  {f.domaine?.libelle} — {f.annee}
-                </div>
-              </div>
-              <div style={{
-                background: '#e1f5ee', color: '#0f6e56',
-                fontSize: 11, fontWeight: 600, padding: '3px 10px', borderRadius: 20, flexShrink: 0
-              }}>
-                {f.participants?.length || 0} inscrits
-              </div>
+      {/* ── Indicateurs synthèse ── */}
+      <div style={cardStyle}>
+        <div style={titleStyle}>📊 Indicateurs de synthèse</div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16 }}>
+          {[
+            {
+              label: 'Durée moyenne formation',
+              value: formations.length > 0
+                ? (formations.reduce((s, f) => s + f.duree, 0) / formations.length).toFixed(1) + ' jours'
+                : '—',
+              color: '#8b5cf6'
+            },
+            {
+              label: 'Budget moyen / formation',
+              value: formations.length > 0
+                ? (stats.budgetTotal / formations.length).toLocaleString('fr-TN') + ' DT'
+                : '—',
+              color: '#10b981'
+            },
+            {
+              label: 'Moy. inscrits / formation',
+              value: formations.length > 0
+                ? (formations.reduce((s, f) => s + (f.participants?.length || 0), 0) / formations.length).toFixed(1)
+                : '—',
+              color: '#f59e0b'
+            },
+            {
+              label: 'Taux de couverture',
+              value: participants.length > 0
+                ? ((formations.reduce((s, f) => s + (f.participants?.length || 0), 0) / participants.length) * 100).toFixed(0) + '%'
+                : '—',
+              color: '#ec4899'
+            },
+          ].map(ind => (
+            <div key={ind.label} style={{ background: '#0d0d1a', borderRadius: 10, padding: '16px', border: `1px solid ${ind.color}22` }}>
+              <div style={{ fontSize: 22, fontWeight: 700, color: ind.color, marginBottom: 6 }}>{ind.value}</div>
+              <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', lineHeight: 1.4 }}>{ind.label}</div>
             </div>
           ))}
-          {topFormations.length === 0 && (
-            <p style={{ textAlign: 'center', color: '#9ca3af', fontSize: 13 }}>Aucune formation</p>
-          )}
-        </div>
-
-        {/* Tableau dernières formations */}
-        <div style={{
-          background: '#fff', border: '0.5px solid #e5e7eb',
-          borderRadius: 14, overflow: 'hidden'
-        }}>
-          <div style={{
-            padding: '16px 20px', borderBottom: '0.5px solid #e5e7eb',
-            display: 'flex', justifyContent: 'space-between', alignItems: 'center'
-          }}>
-            <div>
-              <div style={{ fontSize: 14, fontWeight: 600, color: '#111827' }}>
-                 Dernières formations
-              </div>
-              <div style={{ fontSize: 11, color: '#9ca3af', marginTop: 2 }}>
-                Les 5 dernières formations enregistrées
-              </div>
-            </div>
-            <button
-              onClick={() => navigate(`${basePath}/formations`)}
-              style={{
-                background: '#6378ff', color: '#fff', border: 'none',
-                borderRadius: 8, padding: '6px 14px', fontSize: 12,
-                fontWeight: 500, cursor: 'pointer'
-              }}>
-              Voir tout
-            </button>
-          </div>
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-            <thead>
-              <tr>
-                {['Titre', 'Année', 'Domaine', 'Formateur', 'Budget', 'Inscrits'].map(h => (
-                  <th key={h} style={{
-                    fontSize: 11, fontWeight: 500, color: '#6b7280',
-                    padding: '10px 14px', textAlign: 'left',
-                    borderBottom: '0.5px solid #e5e7eb', background: '#f9fafb'
-                  }}>
-                    {h}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {formations.slice(0, 5).map((f, i) => {
-                const badge = domaineBadge(f.domaine?.libelle);
-                return (
-                  <tr key={f.id} style={{ borderBottom: '0.5px solid #f3f4f6' }}>
-                    <td style={{ fontSize: 12, fontWeight: 500, color: '#111827', padding: '11px 14px', maxWidth: 160 }}>
-                      <div style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                        {f.titre}
-                      </div>
-                    </td>
-                    <td style={{ fontSize: 12, color: '#374151', padding: '11px 14px' }}>{f.annee}</td>
-                    <td style={{ padding: '11px 14px' }}>
-                      <span style={{
-                        background: badge.bg, color: badge.color,
-                        fontSize: 11, fontWeight: 500, padding: '3px 8px', borderRadius: 20
-                      }}>
-                        {f.domaine?.libelle}
-                      </span>
-                    </td>
-                    <td style={{ fontSize: 12, color: '#374151', padding: '11px 14px' }}>
-                      {f.formateur?.nom} {f.formateur?.prenom}
-                    </td>
-                    <td style={{ fontSize: 12, color: '#374151', padding: '11px 14px', whiteSpace: 'nowrap' }}>
-                      {f.budget?.toLocaleString()} DT
-                    </td>
-                    <td style={{ padding: '11px 14px' }}>
-                      <span style={{
-                        background: '#e1f5ee', color: '#0f6e56',
-                        fontSize: 11, fontWeight: 500, padding: '3px 8px', borderRadius: 20
-                      }}>
-                        {f.participants?.length || 0}
-                      </span>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-          {formations.length === 0 && (
-            <div style={{ textAlign: 'center', padding: '40px', color: '#9ca3af', fontSize: 13 }}>
-              Aucune formation enregistrée.
-            </div>
-          )}
         </div>
       </div>
+
     </div>
   );
 }
